@@ -25,7 +25,7 @@ func setupRouter() *gin.Engine {
 
 	// Get user value
 	r.GET("/expired-keys", func(c *gin.Context) {
-		accessKeyInfo, err := GetExpiredAccessKeys(expireTime)
+		accessKeyInfo, err := GetExpiredAccessKeys(c.Request.Context(), expireTime)
 		if err != nil {
 			slog.Error(err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"msg": "Internal server error"})

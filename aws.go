@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func listUsers(svc *iam.Client) ([]types.User, error) {
+func listUsers(ctx context.Context, svc *iam.Client) ([]types.User, error) {
 	slog.Debug("listUser")
 	var users []types.User
 	var marker *string
@@ -20,7 +20,7 @@ func listUsers(svc *iam.Client) ([]types.User, error) {
 			MaxItems: aws.Int32(500),
 			Marker:   marker,
 		}
-		resp, err := svc.ListUsers(context.TODO(), input)
+		resp, err := svc.ListUsers(ctx, input)
 		if err != nil {
 			return users, err
 		}
@@ -36,7 +36,7 @@ func listUsers(svc *iam.Client) ([]types.User, error) {
 	return users, nil
 }
 
-func listAccessKeys(svc *iam.Client, username string) ([]types.AccessKeyMetadata, error) {
+func listAccessKeys(ctx context.Context, svc *iam.Client, username string) ([]types.AccessKeyMetadata, error) {
 	slog.Debug("listAccessKeys")
 	var accessKeys []types.AccessKeyMetadata
 	var marker *string
@@ -47,7 +47,7 @@ func listAccessKeys(svc *iam.Client, username string) ([]types.AccessKeyMetadata
 			MaxItems: aws.Int32(500),
 			Marker:   marker,
 		}
-		resp, err := svc.ListAccessKeys(context.TODO(), input)
+		resp, err := svc.ListAccessKeys(ctx, input)
 		if err != nil {
 			return accessKeys, err
 		}
@@ -67,22 +67,22 @@ type AccessKeyInfo struct {
 	UserName    string
 }
 
-func GetExpiredAccessKeys(expireSec int) ([]AccessKeyInfo, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+func GetExpiredAccessKeys(ctx context.Context, expireSec int) ([]AccessKeyInfo, error) {
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	svc := iam.NewFromConfig(cfg)
 
-	users, err := listUsers(svc)
+	users, err := listUsers(ctx, svc)
 	if err != nil {
 		return nil, err
 	}
 
 	var accessKeys []types.AccessKeyMetadata
 	for _, user := range users {
-		ret, err := listAccessKeys(svc, *user.UserName)
+		ret, err := listAccessKeys(ctx, svc, *user.UserName)
 		if err != nil {
 			return nil, err
 		}
