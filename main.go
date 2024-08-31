@@ -4,13 +4,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	expireTime int
+	expireTime time.Duration
 )
 
 func setupRouter() *gin.Engine {
@@ -18,12 +18,10 @@ func setupRouter() *gin.Engine {
 	// gin.DisableConsoleColor()
 	r := gin.Default()
 
-	// Ping test
 	r.GET("/health-check", func(c *gin.Context) {
 		c.String(http.StatusOK, "healthy")
 	})
 
-	// Get user value
 	r.GET("/expired-keys", func(c *gin.Context) {
 		accessKeyInfo, err := GetExpiredAccessKeys(c.Request.Context(), expireTime)
 		if err != nil {
@@ -54,12 +52,12 @@ func main() {
 		slog.Error("need 'ACCESS_KEY_EXPIRE_TIME' as environment variable")
 		return
 	}
-	i, err := strconv.Atoi(val)
+	d, err := time.ParseDuration(val)
 	if err != nil {
-		slog.Error("expire time have to be integer")
+		slog.Error("cannot parse duration, please input golang duration style")
 		return
 	}
-	expireTime = i
+	expireTime = d
 	r := setupRouter()
 	// Listen and Server in 0.0.0.0:8080
 	r.Run(":8080")

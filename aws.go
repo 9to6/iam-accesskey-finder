@@ -67,7 +67,7 @@ type AccessKeyInfo struct {
 	UserName    string
 }
 
-func GetExpiredAccessKeys(ctx context.Context, expireSec int) ([]AccessKeyInfo, error) {
+func GetExpiredAccessKeys(ctx context.Context, expireTime time.Duration) ([]AccessKeyInfo, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, err
@@ -90,13 +90,10 @@ func GetExpiredAccessKeys(ctx context.Context, expireSec int) ([]AccessKeyInfo, 
 		accessKeys = append(accessKeys, ret...)
 	}
 
-	// elapsed := time.Now().Add(time.Second * time.Duration(expireSec))
-	threshold := time.Second * time.Duration(expireSec)
-
 	var ret []AccessKeyInfo
 	for _, key := range accessKeys {
 		elapsed := time.Since(*key.CreateDate)
-		if elapsed > threshold {
+		if elapsed > expireTime {
 			ret = append(ret, AccessKeyInfo{
 				AccessKeyId: *key.AccessKeyId,
 				UserName:    *key.UserName,
