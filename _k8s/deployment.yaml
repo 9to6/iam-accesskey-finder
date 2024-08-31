@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-accesskey-finder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iam-accesskey-finder
+  template:
+    metadata:
+      labels:
+        app: iam-accesskey-finder
+    spec:
+      serviceAccountName: iam-accesskey-finder
+      containers:
+        - name: api
+          image: 9to5/iam-accesskey-finder
+          env:
+            - name: ACCESS_KEY_EXPIRE_TIME
+              value: 2400h
